@@ -206,11 +206,15 @@ public class RCTAes extends ReactContextBaseJavaModule {
         }
 
         byte[] key = Hex.decode(hexKey);
+        byte[] iv = Hex.decode(hexIv);
         SecretKey secretKey = new SecretKeySpec(key, KEY_ALGORITHM);
 
         Cipher cipher = Cipher.getInstance(CIPHER_ALGORITHM);
-        cipher.init(Cipher.DECRYPT_MODE, secretKey, hexIv == null ? emptyIvSpec : new IvParameterSpec(Hex.decode(hexIv)));
-        byte[] decrypted = cipher.doFinal(Base64.decode(ciphertext, Base64.NO_WRAP));
+        cipher.init(Cipher.DECRYPT_MODE, secretKey, hexIv == null ? emptyIvSpec : new IvParameterSpec(iv));
+        byte[] decoded = Base64.decode(ciphertext, Base64.DEFAULT);
+        byte[] message = Arrays.copyOfRange(decoded, iv.length, decoded.length);
+        byte[] decrypted = cipher.doFinal(message);
+
         return Base64.encodeToString(decrypted, Base64.DEFAULT);
     }
 
